@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Programming</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="stylesheet" href="vendor/codemirror/codemirror.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="topbar">
+  <a class="brand" href="#/">🎮 Game<span>Programming</span></a>
+  <nav id="nav"></nav>
+  <div id="hud"></div>
+</header>
+<main id="app"><p class="muted">Cargando…</p></main>
+<div id="toast"></div>
+<script src="vendor/supabase.js"></script>
+<script src="vendor/codemirror/codemirror.js"></script>
+<script src="vendor/codemirror/mode/sql.js"></script>
+<script src="vendor/codemirror/mode/clike.js"></script>
+<script src="vendor/codemirror/matchbrackets.js"></script>
+<script src="vendor/codemirror/closebrackets.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
