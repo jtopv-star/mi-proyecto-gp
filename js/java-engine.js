@@ -1,10 +1,11 @@
-// Motor Java en el navegador: CheerpJ (JVM en WebAssembly) + compilador ECJ.
+// Motor Java en el navegador: CheerpJ 5 (JVM en WebAssembly con el JDK completo, incluido javac).
 // Todo corre dentro del navegador, aislado; no se ejecuta nada en ningún servidor.
 import { RUNNER_SRC, normOut, b64, testsOf } from './java-core.js';
 
-const CHEERPJ_LOADER = 'https://cjrtnc.leaningtech.com/3.0/cj3loader.js';
+const JAVA_VERSION = 21;   // CheerpJ 5 admite 8, 11, 17, 21 y 25
+const CHEERPJ_LOADER = 'https://cjrtnc.leaningtech.com/5.0/loader.js';
 const base = location.pathname.replace(/[^/]*$/, '');
-const ECJ_JAR = '/app' + base + 'lib/ecj.jar';   // /app/ = raíz del sitio web para CheerpJ
+const LAUNCHER_JAR = '/app' + base + 'lib/launcher.jar';   // /app/ = raíz del sitio web para CheerpJ
 let ready = null, runId = 0;
 
 function loadScript(src) {
@@ -19,7 +20,7 @@ export function init(onStatus = () => {}) {
   ready = (async () => {
     onStatus('Cargando máquina virtual Java (solo la primera vez, puede tardar)…');
     await loadScript(CHEERPJ_LOADER);
-    await cheerpjInit({ version: 8 });
+    await cheerpjInit({ version: JAVA_VERSION || 21 });
     onStatus('Java listo.');
   })().catch(e => { ready = null; throw e; });
   return ready;
@@ -30,12 +31,14 @@ async function compile(code, onStatus) {
   const id = ++runId;
   cheerpOSAddStringFile('/str/Main.java', code);
   cheerpOSAddStringFile('/str/Runner.java', RUNNER_SRC);
-  const log = `/files/ecj${id}.log`;
+  const log = `/files/javac${id}.log`;
   onStatus('Compilando…');
-  const code0 = await cheerpjRunMain('org.eclipse.jdt.internal.compiler.batch.Main', ECJ_JAR,
-    '-8', '-nowarn', '-proc:none', '-d', `/files/cls${id}`, '-log', log, '/str/Main.java', '/str/Runner.java');
-  const msg = (await readText(log)).trim();
-  if (code0 !== 0 || /ERROR in/.test(msg)) return { id, error: msg || 'Error de compilación desconocido (¿falta lib/ecj.jar?).' };
+  // Launcher (lib/launcher.jar) llama a javac y deja en un archivo el código de salida y los mensajes
+  await cheerpjRunMain('Launcher', LAUNCHER_JAR, log, '-proc:none', '-nowarn', '-d', `/files/cls${id}`, '/str/Main.java', '/str/Runner.java');
+  const msg = (await readText(log)).replace(/\r/g, '');
+  if (!msg) return { id, error: 'No se obtuvo respuesta del compilador (¿falta lib/launcher.jar?).' };
+  const rc = (msg.match(/^RC=(\d+)/) || [])[1];
+  if (rc !== '0') return { id, error: msg.replace(/^RC=\d+\n/, '').replace(/\/str\//g, '') };
   return { id };
 }
 
@@ -71,17 +74,18 @@ export async function grade(ex, code, onStatus = () => {}) {
 
 // Diagnóstico paso a paso para detectar problemas de configuración
 export async function diagnose(log) {
-  try { log('1/4 Cargando CheerpJ…'); await init(log); log('   ✔ CheerpJ cargó'); } catch (e) { log('   ✘ ' + e.message); return; }
+  try { log('1/5 Cargando CheerpJ 5 (Java ' + (JAVA_VERSION || 21) + ')…'); await init(log); log('   ✔ CheerpJ cargó'); } catch (e) { log('   ✘ ' + (e.message || e)); return; }
+  log('2/5 Funciones necesarias: cheerpOSAddStringFile=' + typeof cheerpOSAddStringFile + ', cjFileBlob=' + typeof cjFileBlob + ', cheerpjRunMain=' + typeof cheerpjRunMain);
   try {
-    log('2/4 Buscando lib/ecj.jar…'); const r = await fetch(base + 'lib/ecj.jar', { method: 'HEAD' });
-    if (!r.ok) { log('   ✘ No existe lib/ecj.jar en el sitio (HTTP ' + r.status + '). Revisa el README, paso del compilador.'); return; }
-    log('   ✔ Se encontró (' + Math.round((r.headers.get('content-length') || 0) / 1024) + ' KB)');
+    log('3/5 Buscando lib/launcher.jar…'); const r = await fetch(base + 'lib/launcher.jar', { method: 'HEAD' });
+    if (!r.ok) { log('   ✘ No existe lib/launcher.jar en el sitio (HTTP ' + r.status + '). Súbelo junto con el resto de archivos.'); return; }
+    log('   ✔ Se encontró');
   } catch (e) { log('   ✘ ' + e.message); return; }
   try {
-    log('3/4 Compilando y ejecutando un programa de prueba…');
+    log('4/5 Compilando y ejecutando un programa de prueba…');
     const res = await run('public class Main { public static void main(String[] a){ System.out.println("OK-JAVA " + (2+3)); } }', '', log);
     if (res.compileError) { log('   ✘ Error de compilación:\n' + res.compileError); return; }
     log('   Salida: ' + JSON.stringify(res.output));
-    log(/OK-JAVA 5/.test(res.output) ? '4/4 ✔ Todo funciona.' : '4/4 ✘ La salida no es la esperada.');
+    log(/OK-JAVA 5/.test(res.output) ? '5/5 ✔ Todo funciona.' : '5/5 ✘ La salida no es la esperada.');
   } catch (e) { log('   ✘ ' + (e.message || e)); }
 }
