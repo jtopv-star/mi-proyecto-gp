@@ -1,3 +1,3 @@
 
-export const SUPABASE_URL = 'https://hpxwxesoqwqkdakhznmx.supabase.co/rest/v1/';       // ej: https://abcdxyz.supabase.co
+export const SUPABASE_URL = 'https://hpxwxesoqwqkdakhznmx.supabase.co';       // ej: https://abcdxyz.supabase.co
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhweHd4ZXNvcXdxa2Rha2h6bm14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNzA2ODQsImV4cCI6MjEwOTk0NjY4NH0.tIa-FNcl226UDhi98xI6ZCsezyAisffxE3mIHK-orDw';  // ej: eyJhbGciOiJI...
