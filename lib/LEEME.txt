@@ -1,0 +1,4 @@
+Coloca aquí el archivo  ecj.jar  (compilador de Java que corre dentro del navegador).
+Descárgalo desde:
+https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/3.26.0/ecj-3.26.0.jar
+y renómbralo a  ecj.jar  (README, paso 3).
