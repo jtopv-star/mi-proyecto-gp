@@ -34,7 +34,7 @@ async function compile(code, onStatus) {
   const log = `/files/javac${id}.log`;
   onStatus('Compilando…');
   // Launcher (lib/launcher.jar) llama a javac y deja en un archivo el código de salida y los mensajes
-  await cheerpjRunMain('Launcher', LAUNCHER_JAR, log, '-proc:none', '-nowarn', '-d', `/files/cls${id}`, '/str/Main.java', '/str/Runner.java');
+  await cheerpjRunMain('Launcher', LAUNCHER_JAR, log, '-proc:none', '-nowarn', '-encoding', 'UTF-8', '-d', `/files/cls${id}`, '/str/Main.java', '/str/Runner.java');
   const msg = (await readText(log)).replace(/\r/g, '');
   if (!msg) return { id, error: 'No se obtuvo respuesta del compilador (¿falta lib/launcher.jar?).' };
   const rc = (msg.match(/^RC=(\d+)/) || [])[1];
